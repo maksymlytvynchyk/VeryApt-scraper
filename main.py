@@ -1,129 +1,206 @@
 import requests
 import time
 import os
+import re
+import json
 import pandas as pd
-from urllib.parse import urljoin, urlparse
+from urllib.parse import urljoin
+from collections import Counter
 from bs4 import BeautifulSoup
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import sync_playwright, TimeoutError
 
-"""
-https://www.upwork.com/nx/find-work/most-recent/details/~022110260925663995874?pageTitle=Job%20Details&_modalInfo=%5B%7B%22navType%22%3A%22slider%22,%22title%22%3A%22Job%20Details%22,%22modalId%22%3A%221792003426759%22%7D%5D
-Summary
-I need a one-time scrape of apartment building listings from VeryApt.com for downtown Chicago, delivered as clean CSV files. The work must be done from your own infrastructure.
 
-Scope
-Source: VeryApt Chicago region pages, starting points:
-veryapt.com/Apartments-L657-chicago-near-northside
-veryapt.com/Apartments-L562-chicago-the-loop
-veryapt.com/Apartments-L662-chicago-near-south-side
-veryapt.com/Apartments-L661-chicago-near-west-side
-veryapt.com/Apartments-L659-chicago-west-town
-veryapt.com/Apartments-L563-chicago-lincoln-park
-Plus any other region pages needed to cover the boundary.
+BUILDINGS_FILE = "buildings.csv"
+PHOTOS_FILE = "photos.csv"
+AMENITIES_FILE = "amenities.csv"
 
-Boundary: only buildings between Armitage (2000 N) and 26th St (2600 S), and between the Lake and Ashland (1600 W).
-Includes Gold Coast, Old Town, River North, Streeterville, Lakeshore East, Loop, West Loop, Fulton Market, South Loop and River West.
-Regions overlap, so dedupe by building URL.
 
-Estimated volume: about 1,200 raw listings, likely 500–800 unique buildings after filtering.
+def append_to_csv(df, filepath):
+    file_exists = os.path.exists(filepath)
+    df.to_csv(filepath, mode="a", index=False, sep=";",
+              header=not file_exists, encoding="utf-8")
 
-Fields per building
-Name, URL, VeryApt neighborhood label, street address,
-Building type (high-rise apartment, condo, etc.)
-Management company
-User rating and review count
-Every pricing row (unit type, beds/baths, starting price)
-Full amenity list with VeryApt's categories (Kitchen, Laundry, Pet Terms, etc.)
-Photo URLs, all available per building. Photos load via JavaScript, so a headless browser (Playwright, Puppeteer or Selenium) is likely required.
-Nice to have:  year built, unit count and lat/long, if available on building pages.
 
-Deliverables
-buildings.csv: one row per building with all the fields above.
-amenities.csv: master list of every amenity, with its category and the count of buildings that have it.
-photos.csv: building URL and photo URL, one row per photo. The downloaded images in folders by building.
+def render_html(urls):
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        for url in urls:
+            page = browser.new_page()
+            try:
+                page.goto(url, wait_until="domcontentloaded")
+                try:
+                    page.locator(
+                        ".apartment-item-info-tab-button").filter(has_text="Photos").wait_for()
+                    page.locator(
+                        ".apartment-item-info-tab-button").filter(has_text="Photos").click()
+                    page.locator(
+                        ".apartment-item-box-photo-lane").wait_for(state="visible")
+                except TimeoutError:
+                    print("Photos not found")
+                    pass
+                html = page.content()
+                try:
+                    page.locator(
+                        ".apartment-item-info-tab-button").filter(has_text="Amenities").click()
+                    page.locator(
+                        ".apartment-item-box-amenities").wait_for(state="visible")
+                except TimeoutError:
+                    print("Amenities not found")
+                    pass
+                amenities_html = page.content()
+                amenities_soup = BeautifulSoup(amenities_html, "html.parser")
+                soup = BeautifulSoup(html, "html.parser")
+                scrape_building_page(soup, amenities_soup, url)
+            finally:
+                page.close()
+        browser.close()
+        generate_amenities_master()
+    return
 
-Requirements
-Proven experience scraping JavaScript-rendered sites. Please share examples.
-Polite request pacing with no aggressive hammering of the site.
 
-Spot-check accuracy against at least 10 live listings before delivery.
+def clean_text(text):
+    if not text:
+        return ""
+    text = text.replace('\xa0', ' ')
+    return re.sub(r'\s+', ' ', text).strip()
 
-To apply, include:
-Your approach and tools
-Estimated turnaround
-Fixed price quote
-One similar project you've completed
-Budget: [fixed price, your range]
-Timeline: [e.g., 5–7 days]
-"""
 
-urls = [
-    # "https://www.veryapt.com/Apartments-L657-chicago-near-northside",
-    "https://www.veryapt.com/Apartments-L657-chicago-near-northside?page=",
-    "https://www.veryapt.com/Apartments-L562-chicago-the-loop",
-    "https://www.veryapt.com/Apartments-L662-chicago-near-south-side",
-    "https://www.veryapt.com/Apartments-L661-chicago-near-west-side",
-    "https://www.veryapt.com/Apartments-L659-chicago-west-town",
-    "https://www.veryapt.com/Apartments-L563-chicago-lincoln-park"
-]
-# page = requests.get(url)
-# for index, url in enumerate(urls, start=1):
-#     # Dynamically create a unique file name for each link
-#     file_name = f"page_{index}.html"
-    
-#     try:
-#         # Fetch the webpage content
-#         response = requests.get(url, timeout=10)
-#         response.raise_for_status()
-        
-#         # Write the HTML content to its respective file
-#         with open(file_name, "w", encoding="utf-8") as file:
-#             file.write(response.text)
-            
-#         print(f"Successfully saved {url} -> {file_name}")
-        
-#     except requests.exceptions.RequestException as e:
-#         print(f"Failed to download {url}: {e}")
+def scrape_building_page(soup, amenities_soup, url):
+    photo_urls = set()
+    for img in soup.select(".apartment-item-box-photo"):
+        for attr in ("src", "data-src", "data-lazy-src"):
+            value = img.get(attr)
+            if value:
+                photo_urls.add(value)
 
-"""
+        for candidate in img.get("srcset", "").split(","):
+            value = candidate.strip().split(" ")[0]
+            if value:
+                photo_urls.add(value)
+    name = soup.find(
+        class_="detail-link").text if soup.find(class_="detail-link") else "N/A"
+    neighborhood = soup.select_one(".apartment-item-location a").text.split(
+        ",")[0] if soup.select_one(".apartment-item-location a") else "N/A"
+    address = ", ".join([s.text for s in soup.select(".apartment-item-location span")]
+                        ) if soup.select(".apartment-item-location span") else "N/A"
+    building_type = next(soup.find("div", class_="apartment-item-building-type").stripped_strings) if soup.find(
+        "div", class_="apartment-item-building-type") else "N/A"
+    management = soup.select_one(
+        ".management-link a span").text if soup.select_one('.management-link a span') else "N/A"
+    rating = soup.select_one(
+        ".user-rating-number").text.strip() if soup.select_one(".user-rating-number") else "N/A"
+    review_count = soup.select_one(
+        ".apartment-item-rating span").text if soup.select_one(".apartment-item-rating span") else "N/A"
 
-"""
-output_file = "scraped_data.csv"
-base_urls = []
-def building_links(html, base_url):
-    all_data = []
-    page = 1
+    pricing_rows = []
+    floorplan_elements = soup.select(".apartment-item-pricing-list")
+    for fp in floorplan_elements:
+        beds_baths = clean_text(fp.select_one(
+            ".pricing-type").text) if fp.select_one(".pricing-type") else "N/A"
+        price = clean_text(fp.select_one(
+            ".pricing-price").text) if fp.select_one(".pricing-price") else "N/A"
+        pricing_rows.append(
+            {"beds_baths": beds_baths, "starting_price": price})
+
+    amenities_data = []
+    amenity_blocks = amenities_soup.select(
+        ".apartment-item-amenity-categories li")
+    for block in amenity_blocks:
+        category = block.select_one("h4")
+        if category:
+            category = clean_text(category.text) if category else "N/A"
+            items = [el.text for el in block.select(
+                ".apartment-item-amenity-category li")]
+            for item in items:
+                amenity_name = clean_text(item)
+                amenities_data.append(
+                    {"category": category, "name": amenity_name})
+
+    building_record = {
+        "name": name, "url": url, "neighborhood": neighborhood, "address": address,
+        "building_type": building_type, "management_company": management,
+        "rating": rating, "review_count": review_count,
+        # Embedded JSON string to keep 1 row constraint
+        "pricing_structure": json.dumps(pricing_rows),
+        "amenities_list": json.dumps(amenities_data)
+    }
+    append_to_csv(pd.DataFrame([building_record]), BUILDINGS_FILE)
+
+    if photo_urls:
+        photos_records = [{"building_url": url, "photo_url": p_url}
+                          for p_url in photo_urls]
+        append_to_csv(pd.DataFrame(photos_records), PHOTOS_FILE)
+    return sorted(photo_urls)
+
+
+def generate_amenities_master():
+    if not os.path.exists(BUILDINGS_FILE):
+        return
+
+    df = pd.read_csv(BUILDINGS_FILE, sep=";", on_bad_lines="skip")
+    global_amenities = []
+
+    for record in df["amenities_list"]:
+        try:
+            amenities = json.loads(record)
+            for am in amenities:
+                global_amenities.append((am['category'], am['name']))
+        except Exception:
+            continue
+
+    counts = Counter(global_amenities)
+
+    master_list = []
+
+    for (category, name), count in counts.items():
+        master_list.append({
+            "Amenity Name": name,
+            "Category": category,
+            "Building Count": count
+        })
+
+    df_amenities = pd.DataFrame(master_list)
+    df_amenities.to_csv(AMENITIES_FILE, sep=";", index=False, encoding="utf-8")
+
+
+def building_links(urls):
     results = set()
-    while True:
-        params = {"page": page}
-        current_page = urls[0] + str(page)
-        response = requests.get(current_page, timeout=10)
-        soup = BeautifulSoup(response.text, "html.parser")
-        last_page = f"https://www.veryapt.com{soup.select_one(".ajax-listing-link-replace:contains(Last)").get('href')}"
-        # all_data.append(soup)
-        for card in soup.select("h3.whitney"):
-            print(card)
-            link = card.select_one("a[href]")
-            if not link:
-                continue
+    for url in urls:
+        page = 1
+        while True:
+            current_page = urljoin(url, f"?page={page}")
+            print(current_page)
+            response = requests.get(current_page, timeout=10)
+            soup = BeautifulSoup(response.text, "html.parser")
+            last_page = f"https://www.veryapt.com{soup.select_one(".ajax-listing-link-replace:-soup-contains(Last)").get('href')}"
+            print(last_page)
+            for card in soup.select("h3.whitney"):
+                link = card.select_one("a[href]")
+                if not link:
+                    continue
 
-            url = urljoin(base_url, link["href"])
-            # if urlparse(url).netloc.endswith("veryapt.com"):
-            results.add(url)
-        if current_page == last_page:
-            print("Reached the finall page")
-            break
-        page += 1
-        time.sleep(1)
-        
-    # for p in all_data:
-        
+                card_url = urljoin("https://www.veryapt.com", link["href"])
+                results.add(card_url)
+            if current_page == last_page:
+                print("Reached the finall page")
+                break
+            page += 1
+            time.sleep(1)
 
-    return results
+    render_html(results)
+
 
 def main():
-    pass
-print(building_links("page_1.html", base_urls))
-# with open("page_1.html") as fp:
-#     soup = BeautifulSoup(fp, "html.parser")
-# print(soup.find_all(class_="whitney"))
+    urls = [
+        "https://www.veryapt.com/Apartments-L657-chicago-near-northside",
+        "https://www.veryapt.com/Apartments-L562-chicago-the-loop",
+        "https://www.veryapt.com/Apartments-L662-chicago-near-south-side",
+        "https://www.veryapt.com/Apartments-L661-chicago-near-west-side",
+        "https://www.veryapt.com/Apartments-L659-chicago-west-town",
+        "https://www.veryapt.com/Apartments-L563-chicago-lincoln-park"
+    ]
+    print(building_links(urls))
+
+
+if __name__ == "__main__":
+    main()

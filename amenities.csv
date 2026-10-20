@@ -1,0 +1,165 @@
+Amenity Name;Category;Building Count
+Bath Tubs;Bathrooms;300
+Walk-in Closets;Bedrooms;230
+Elevators;Building Related;507
+Smoke-Free Community;Building Related;109
+Business Center;Convenience;162
+Conference Room;Convenience;120
+Package Receiving;Convenience;207
+Grilling Station;Entertainment;179
+Theater Room;Entertainment;52
+Basic Cable Included;Included;177
+Internet Included;Included;111
+Dishwasher;Kitchen;540
+Garbage Disposal;Kitchen;257
+Gas Range;Kitchen;229
+Ice Maker;Kitchen;47
+Microwave;Kitchen;549
+Quartz Countertops;Kitchen;45
+Refrigerator;Kitchen;548
+Stainless Steel Appliances;Kitchen;349
+Stove & Oven;Kitchen;536
+Washer/Dryer In Unit;Laundry;334
+Application Fee;Lease Terms;132
+Air Conditioning;Living Room;546
+High Ceilings;Living Room;115
+Bike Storage;Parking & Transportation;287
+Parking Garage;Parking & Transportation;345
+Cat friendly;Pet Terms & Amenities;341
+Dog friendly;Pet Terms & Amenities;315
+Max Pet Weight;Pet Terms & Amenities;76
+Max Pets Limit;Pet Terms & Amenities;122
+24-Hour Front Desk;Security & Maintenance;272
+Controlled Access;Security & Maintenance;248
+Gated Community;Security & Maintenance;119
+On-site Maintenance;Security & Maintenance;217
+Fitness Center;Sports & Fitness;377
+Swimming Pool;Sports & Fitness;114
+Yoga Studio;Sports & Fitness;39
+Additional Storage Available;Storage;375
+Loft Style Bedrooms (some units);Bedrooms;4
+Gas Included;Included;104
+Heat Included;Included;212
+Water Included;Included;260
+Granite Countertops;Kitchen;323
+Hardwood Floors (some units);Living Room;11
+Wall-to-Wall Carpets (some units);Living Room;13
+Dry Cleaning Valet Service;Convenience;128
+Hardwood Floors;Living Room;444
+Parking Nearby;Parking & Transportation;47
+Private Balconies;View;222
+Community Kitchen;Entertainment;37
+Game Room;Entertainment;70
+Game Table;Entertainment;52
+Hot Tub;Entertainment;64
+Playground;Entertainment;24
+Resident Lounge;Entertainment;191
+Terrace Deck;Entertainment;76
+Trash/Recycling Included;Included;78
+Washer and Dryer Hookups In Unit;Laundry;98
+Furnished Units Available;Lease Terms;25
+Minimum Lease Term;Lease Terms;66
+Online Rent Payment;Lease Terms;68
+Large Windows;Living Room;297
+Electric Car Charging Stations;Parking & Transportation;17
+Dog Park;Pet Terms & Amenities;79
+Restricted breeds;Pet Terms & Amenities;70
+24 Hour Emergency Maintenance;Security & Maintenance;113
+Aerobics & Cardio Room;Sports & Fitness;28
+Basketball Court;Sports & Fitness;22
+Amazing Views;View;155
+Private Decks;View;49
+Resident Events;Entertainment;91
+Stainless Steel Appliances (some units);Kitchen;33
+Building Laundry Room;Laundry;200
+Ceiling Fans;Living Room;110
+Fireplace;Living Room;89
+Wall-to-Wall Carpets;Living Room;126
+Indoor Pool;Sports & Fitness;53
+Double Sinks (some units);Bathrooms;23
+Cat fee;Pet Terms & Amenities;113
+Dog fee;Pet Terms & Amenities;105
+Pet Grooming Station;Pet Terms & Amenities;36
+Private Balconies (some units);View;18
+Rooftop Deck;Entertainment;211
+Luxury Cabinets;Kitchen;190
+Move-in Fee;Lease Terms;63
+Lots of Sunlight;Living Room;178
+Vaulted Ceilings;Living Room;37
+Car Share Program;Parking & Transportation;10
+Surface Parking Lot;Parking & Transportation;38
+Electricity Included;Included;19
+Sewage Included;Included;99
+Coffee Bar;Entertainment;39
+Other Fees;Lease Terms;16
+Community Garden;Landscape;23
+Walk-in Closets (some units);Bedrooms;22
+Cold Storage for Grocery Delivery;Convenience;4
+Bike Share Program;Parking & Transportation;4
+Pet deposit for cats;Pet Terms & Amenities;19
+Pet deposit for dogs;Pet Terms & Amenities;21
+Outdoor Pool;Sports & Fitness;53
+Double Sinks;Bathrooms;54
+Luxury Countertops;Kitchen;7
+Courtyard;Landscape;89
+Oversize or penthouse units (some units);Unique Unit Types;5
+Quartz Countertops (some units);Kitchen;2
+Washer/Dryer In Unit (some units);Laundry;20
+Racquetball/Squash Courts;Sports & Fitness;4
+Oversize or penthouse units;Unique Unit Types;7
+Laundry on Every Floor;Laundry;7
+Common Amenity Fee;Lease Terms;3
+Free Shuttle Service;Parking & Transportation;2
+Granite Countertops (some units);Kitchen;12
+Private Garages;Parking & Transportation;21
+Part-time Front Desk;Security & Maintenance;22
+Private Decks (some units);View;6
+Bath Tubs (some units);Bathrooms;13
+High Ceilings (some units);Living Room;3
+Instructor-led Classes;Sports & Fitness;9
+On-site ATM;Convenience;8
+Loft Style Bedrooms;Bedrooms;6
+Skylights;Living Room;8
+Dry Cleaning Service;Convenience;2
+Study Rooms;Convenience;2
+Rooftop Oasis;Entertainment;2
+Bike Storage Room;Parking & Transportation;2
+Luxury Cabinets (some units);Kitchen;4
+Juliet Balconies;View;3
+Central A/C;Living Room;13
+Street Parking Available;Parking & Transportation;2
+Sun Deck;Entertainment;3
+Tennis Courts;Sports & Fitness;8
+Pantry Closet;Storage;12
+Conference Rooms with A/V Capabilities;Convenience;2
+Online Payments Accepted;Lease Terms;2
+Cat Friendly;Pet Terms & Amenities;4
+Extra Storage;Storage;4
+Floor-to-Ceiling Windows;Living Room;3
+Incredible City Views;View;1
+Mini-fridge;Kitchen;10
+Partial-height bedroom walls (some units);Bedrooms;1
+Ceiling Fans (some units);Living Room;3
+Juliet Balconies (some units);View;1
+Mini Grocery Store;Convenience;8
+Security Deposit;Lease Terms;4
+Dishwasher (some units);Kitchen;3
+Air Conditioning (some units);Living Room;1
+Luxury Countertops (some units);Kitchen;1
+On-site dry cleaners;Convenience;1
+Storage Units;Storage;1
+Sundeck;View;1
+Student Housing;Lease Terms;1
+Fireplace (some units);Living Room;2
+Individually Controlled Heat & A/C;Living Room;1
+Club Room;Entertainment;1
+Oversized Sundeck;Entertainment;1
+Meditation Garden;Landscape;1
+Large Windows (some units);Living Room;4
+Lots of Sunlight (some units);Living Room;2
+Gas Range (some units);Kitchen;1
+Indoor Bicycle Storage;Parking & Transportation;1
+Volleyball Courts;Sports & Fitness;1
+Microwave (some units);Kitchen;1
+Outdoor Fireplace;Living Room;1
+Private Patio;View;1
